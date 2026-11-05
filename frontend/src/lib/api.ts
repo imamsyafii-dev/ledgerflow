@@ -18,14 +18,21 @@ export type Customer = {
 };
 
 export type User = {
-	id: string;
-	organization_id: string;
-	name: string;
-	email: string;
-	role: "finance_admin" | "approver" | "viewer";
-	is_active: boolean;
-	created_at: string;
-	updated_at: string;
+  id: string;
+  organization_id: string;
+  name: string;
+  email: string;
+  role: "finance_admin" | "approver" | "viewer";
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateUserInput = {
+  name: string;
+  email: string;
+  password: string;
+  role: User["role"];
 };
 
 export type CreateInvoiceInput = {
@@ -105,6 +112,14 @@ function getConfiguration() {
   };
 }
 
+function getAPIBaseURL() {
+  if (!apiBaseURL) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL harus diisi");
+  }
+
+  return apiBaseURL;
+}
+
 async function getFromAPI<T>(path: string): Promise<T> {
   const { apiBaseURL } = getConfiguration();
 
@@ -138,6 +153,7 @@ export async function createInvoice(input: CreateInvoiceInput) {
 
   const response = await fetch(`${apiBaseURL}/api/v1/invoices`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -169,6 +185,7 @@ export async function issueInvoice(invoiceID: string) {
     `${apiBaseURL}/api/v1/invoices/${invoiceID}/issue`,
     {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -243,6 +260,7 @@ export async function createCustomer(input: CreateCustomerInput) {
 
   const response = await fetch(`${apiBaseURL}/api/v1/customers`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -261,6 +279,74 @@ export async function createCustomer(input: CreateCustomerInput) {
 
   const payload = await response.json() as ApiResponse<Customer>;
 
+  return payload.data;
+}
+
+export async function createUser(input: CreateUserInput) {
+  const response = await fetch(`${getAPIBaseURL()}/api/v1/users`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: input.name,
+      email: input.email,
+      password: input.password,
+      role: input.role,
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error ?? "Failed to create user");
+  }
+
+  const payload = (await response.json()) as ApiResponse<User>;
+  return payload.data;
+}
+
+export async function updateUserRole(userID: string, role: User["role"]) {
+  const response = await fetch(
+    `${getAPIBaseURL()}/api/v1/users/${userID}/role`,
+    {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ role }),
+    },
+  );
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error ?? "Failed to update user role");
+  }
+
+  const payload = (await response.json()) as ApiResponse<User>;
+  return payload.data;
+}
+
+export async function updateUserStatus(userID: string, isActive: boolean) {
+  const response = await fetch(
+    `${getAPIBaseURL()}/api/v1/users/${userID}/status`,
+    {
+      method: "PATCH",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ is_active: isActive }),
+    },
+  );
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error ?? "Failed to update user status");
+  }
+
+  const payload = (await response.json()) as ApiResponse<User>;
   return payload.data;
 }
 

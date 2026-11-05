@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { CreateUserForm } from "@/components/create-user-form";
+import { UserActions } from "@/components/user-actions";
 import { getCurrentUser, getUsers } from "@/lib/server-api";
 
 export const instant = false;
@@ -43,6 +45,17 @@ export default async function UsersPage() {
         </Link>
       </section>
 
+      <section className="panel form-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">New member</p>
+            <h2>Create User</h2>
+          </div>
+        </div>
+
+        <CreateUserForm />
+      </section>
+
       <section className="panel">
         <div className="panel-header">
           <div>
@@ -63,6 +76,7 @@ export default async function UsersPage() {
                   <th>Role</th>
                   <th>Status</th>
                   <th>Created At</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -81,6 +95,12 @@ export default async function UsersPage() {
                       </span>
                     </td>
                     <td>{formatDate(user.created_at)}</td>
+                    <td>
+                      <UserActions
+                        user={user}
+                        isCurrentUser={user.id === currentUser.id}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>

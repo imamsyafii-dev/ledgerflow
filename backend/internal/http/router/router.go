@@ -91,7 +91,7 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 	)
 
 	api := engine.Group("/api/v1")
-	api.Use(middleware.RequireAuth(cfg.JWTSecret))
+	api.Use(middleware.RequireAuth(cfg.JWTSecret, db))
 	{
 		api.POST("/customers", customerHandler.Create)
 		api.GET("/customers", customerHandler.List)
@@ -99,6 +99,21 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 			"/users",
 			middleware.RequireRole(model.UserRoleFinanceAdmin),
 			userHandler.List,
+		)
+		api.POST(
+			"/users",
+			middleware.RequireRole(model.UserRoleFinanceAdmin),
+			userHandler.Create,
+		)
+		api.PATCH(
+			"/users/:user_id/role",
+			middleware.RequireRole(model.UserRoleFinanceAdmin),
+			userHandler.UpdateRole,
+		)
+		api.PATCH(
+			"/users/:user_id/status",
+			middleware.RequireRole(model.UserRoleFinanceAdmin),
+			userHandler.UpdateStatus,
 		)
 		api.POST("/invoices", invoiceHandler.Create)
 		api.GET("/invoices", invoiceHandler.List)
@@ -114,7 +129,7 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 		authRoutes.POST("/logout", authHandler.Logout)
 		authRoutes.GET(
 			"/me",
-			middleware.RequireAuth(cfg.JWTSecret),
+			middleware.RequireAuth(cfg.JWTSecret, db),
 			authHandler.Me,
 		)
 	}

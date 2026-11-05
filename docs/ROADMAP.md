@@ -25,11 +25,11 @@ Sudah tersedia:
 Tujuan: finance admin dapat mengelola user dalam organisasinya dan sistem membatasi akses sesuai role.
 
 - ~~List users per organization~~
-- Create user
-- Activate dan deactivate user
-- Ubah role user
-- Halaman `/users`
-- Hanya `finance_admin` yang dapat mengelola user
+- ~~Create user~~
+- ~~Activate dan deactivate user~~
+- ~~Ubah role user~~
+- ~~Halaman `/users`~~
+- ~~Hanya `finance_admin` yang dapat mengelola user~~
 - `viewer` hanya dapat melihat data
 - `approver` memiliki akses approval refund
 

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/auth"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/model"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -14,7 +15,7 @@ const (
 	RoleContextKey           = "authenticated_role"
 )
 
-func RequireAuth(jwtSecret string) gin.HandlerFunc {
+func RequireAuth(jwtSecret string, db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString, err := c.Cookie(auth.AccessTokenCookieName)
 		if err != nil {
@@ -32,9 +33,25 @@ func RequireAuth(jwtSecret string) gin.HandlerFunc {
 			return
 		}
 
+		var organizationID string
+		var role string
+		var isActive bool
+
+		err = db.QueryRow(
+			c.Request.Context(),
+			`SELECT organization_id::text, role, is_active FROM users WHERE id = $1`,
+			claims.Subject,
+		).Scan(&organizationID, &role, &isActive)
+		if err != nil || !isActive || organizationID != claims.OrganizationID {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid or expired session",
+			})
+			return
+		}
+
 		c.Set(UserIDContextKey, claims.Subject)
-		c.Set(OrganizationIDContextKey, claims.OrganizationID)
-		c.Set(RoleContextKey, claims.Role)
+		c.Set(OrganizationIDContextKey, organizationID)
+		c.Set(RoleContextKey, role)
 
 		c.Next()
 	}

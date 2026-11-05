@@ -24,7 +24,7 @@ Alur inti Ledgerflow saat ini:
 - Authentication berbasis JWT dalam HttpOnly cookie
 - Login, logout, dan endpoint current user (`GET /api/v1/auth/me`)
 - Data role user: `finance_admin`, `approver`, dan `viewer`
-- Daftar user organization untuk `finance_admin`
+- User management untuk `finance_admin`: list, create, ubah role, dan activate/deactivate
 - Customer management
 - Invoice creation dan invoice issuing
 - Mock payment gateway webhook
@@ -199,6 +199,9 @@ Buka `http://localhost:3000`.
 | GET | `/api/v1/auth/me` | Mengambil user yang sedang login |
 | POST | `/api/v1/organizations` | Bootstrap organization baru, tanpa JWT |
 | GET | `/api/v1/users` | Menampilkan user organisasi; hanya `finance_admin` |
+| POST | `/api/v1/users` | Membuat user organisasi; hanya `finance_admin` |
+| PATCH | `/api/v1/users/:user_id/role` | Mengubah role user; hanya `finance_admin` |
+| PATCH | `/api/v1/users/:user_id/status` | Activate atau deactivate user; hanya `finance_admin` |
 | POST | `/api/v1/customers` | Membuat customer |
 | GET | `/api/v1/customers` | Menampilkan customer organisasi aktif |
 | POST | `/api/v1/invoices` | Membuat invoice |
