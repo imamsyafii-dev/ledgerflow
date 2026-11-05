@@ -24,9 +24,14 @@ func New(db *pgxpool.Pool) *gin.Engine {
 	organizationService := service.NewOrganizationService(organizationRepository)
 	organizationHandler := handler.NewOrganizationHandler(organizationService)
 
+	customerRepository := repository.NewCustomerRepository(db)
+	customerService := service.NewCustomerService(customerRepository)
+	customerHandler := handler.NewCustomerHandler(customerService)
+
 	api := engine.Group("/api/v1")
 	{
 		api.POST("/organizations", organizationHandler.Create)
+		api.POST("/customers", customerHandler.Create)
 	}
 
 	return engine
