@@ -1,8 +1,109 @@
 package service
-import("context";"errors";"strings";"github.com/imamsyafii-dev/ledgerflow/backend/internal/model";"github.com/jackc/pgx/v5";"github.com/jackc/pgx/v5/pgconn")
-var(ErrInvalidRefund=errors.New("invalid refund request");ErrRefundNotFound=errors.New("refund request not found");ErrRefundNotEligible=errors.New("payment is not eligible for refund");ErrPendingRefundExists=errors.New("payment already has a pending refund request"))
-type RefundRepository interface{Create(context.Context,string,string,string,string)(model.RefundRequest,error);List(context.Context,string)([]model.RefundRequest,error);Decide(context.Context,string,string,string,model.RefundStatus,string)(model.RefundRequest,error)}
-type RefundService struct{repository RefundRepository};func NewRefundService(r RefundRepository)*RefundService{return &RefundService{r}}
-func(s *RefundService)Create(c context.Context,o,p,u,reason string)(model.RefundRequest,error){reason=strings.TrimSpace(reason);if o==""||p==""||u==""||reason==""{return model.RefundRequest{},ErrInvalidRefund};x,e:=s.repository.Create(c,o,p,u,reason);if errors.Is(e,pgx.ErrNoRows){return x,ErrRefundNotEligible};var pe *pgconn.PgError;if errors.As(e,&pe)&&pe.Code=="23505"{return x,ErrPendingRefundExists};return x,e}
-func(s *RefundService)List(c context.Context,o string)([]model.RefundRequest,error){if strings.TrimSpace(o)==""{return nil,ErrInvalidRefund};return s.repository.List(c,o)}
-func(s *RefundService)Decide(c context.Context,o,id,a string,status model.RefundStatus,note string)(model.RefundRequest,error){if status!=model.RefundStatusApproved&&status!=model.RefundStatusRejected{return model.RefundRequest{},ErrInvalidRefund};if status==model.RefundStatusRejected&&strings.TrimSpace(note)==""{return model.RefundRequest{},ErrInvalidRefund};x,e:=s.repository.Decide(c,o,id,a,status,strings.TrimSpace(note));if errors.Is(e,pgx.ErrNoRows){return x,ErrRefundNotFound};return x,e}
+
+import (
+	"context"
+	"errors"
+	"strings"
+
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/model"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+)
+
+var (
+	ErrInvalidRefund       = errors.New("invalid refund request")
+	ErrRefundNotFound      = errors.New("refund request not found")
+	ErrRefundNotEligible   = errors.New("payment is not eligible for refund")
+	ErrPendingRefundExists = errors.New(
+		"payment already has a pending refund request",
+	)
+)
+
+type RefundRepository interface {
+	Create(
+		ctx context.Context,
+		organizationID string,
+		paymentID string,
+		requestedBy string,
+		reason string,
+	) (model.RefundRequest, error)
+
+	List(
+		ctx context.Context,
+		organizationID string,
+	) ([]model.RefundRequest, error)
+
+	Decide(
+		ctx context.Context,
+		organizationID string,
+		refundID string,
+		actorID string,
+		status model.RefundStatus,
+		note string,
+	) (model.RefundRequest, error)
+}
+
+type RefundService struct {
+	repository RefundRepository
+}
+
+func NewRefundService(repository RefundRepository) *RefundService {
+	return &RefundService{
+		repository: repository,
+	}
+}
+
+func (s *RefundService) Create(
+	ctx context.Context,
+	organizationID string,
+	paymentID string,
+	requestedBy string,
+	reason string,
+) (model.RefundRequest, error) {
+	reason = strings.TrimSpace(reason)
+
+	if organizationID == "" ||
+		paymentID == "" ||
+		requestedBy == "" ||
+		reason == "" {
+		return model.RefundRequest{}, ErrInvalidRefund
+	}
+
+	refund, err := s.repository.Create(
+		ctx,
+		organizationID,
+		paymentID,
+		requestedBy,
+		reason,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return model.RefundRequest{}, ErrRefundNotEligible
+	}
+
+	var postgresError *pgconn.PgError
+	if errors.As(err, &postgresError) && postgresError.Code == "23505" {
+		return model.RefundRequest{}, ErrPendingRefundExists
+	}
+
+	return refund, err
+}
+
+func (s *RefundService) List(
+	ctx context.Context,
+	organizationID string,
+) ([]model.RefundRequest, error) {
+	if strings.TrimSpace(organizationID) == "" {
+		return nil, ErrInvalidRefund
+	}
+
+	return s.repository.List(ctx, organizationID)
+}
+
+func (s *RefundService) Decide(
+	ctx context.Context,
+	organizationID string,
+	refundID string,
+	actorID string,
+	status model.RefundStatus,
+	note string,
+) (model.RefundRequest, error
