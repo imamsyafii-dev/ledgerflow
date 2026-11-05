@@ -274,3 +274,17 @@ th {
   font-weight: 600;
   text-decoration: none;
 }
+
+.ledger-entries {
+  display: grid;
+  gap: 20px;
+}
+
+.ledger-entry .panel-header {
+  align-items: center;
+}
+
+.entry-date {
+  color: var(--muted);
+  font-size: 14px;
+}
