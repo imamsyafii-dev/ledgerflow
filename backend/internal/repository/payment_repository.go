@@ -146,15 +146,15 @@ func (r *PaymentRepository) ProcessSucceededWebhook(
 	}
 
 	const insertReconciliationQuery = `
-	INSERT INTO reconciliations (
-		organization_id,
-		invoice_id,
-		payment_id,
-		amount,
-		status
-	)
-	VALUES ($1, $2, $3, $4, 'MATCHED')
-`
+		INSERT INTO reconciliations (
+			organization_id,
+			invoice_id,
+			payment_id,
+			amount,
+			status
+		)
+		VALUES ($1, $2, $3, $4, 'MATCHED')
+	`
 
 	_, err = tx.Exec(
 		ctx,
@@ -166,6 +166,109 @@ func (r *PaymentRepository) ProcessSucceededWebhook(
 	)
 	if err != nil {
 		return model.Payment{}, false, fmt.Errorf("create reconciliation: %w", err)
+	}
+
+	const ensureLedgerAccountsQuery = `
+		INSERT INTO ledger_accounts (
+			organization_id,
+			code,
+			name,
+			account_type
+		)
+		VALUES
+			($1, '1000', 'Cash', 'ASSET'),
+			($1, '1100', 'Accounts Receivable', 'ASSET')
+		ON CONFLICT (organization_id, code) DO NOTHING
+	`
+
+	_, err = tx.Exec(
+		ctx,
+		ensureLedgerAccountsQuery,
+		event.OrganizationID,
+	)
+	if err != nil {
+		return model.Payment{}, false, fmt.Errorf("ensure ledger accounts: %w", err)
+	}
+
+	const findLedgerAccountQuery = `
+		SELECT id::text
+		FROM ledger_accounts
+		WHERE organization_id = $1 AND code = $2
+	`
+
+	var cashAccountID string
+
+	err = tx.QueryRow(
+		ctx,
+		findLedgerAccountQuery,
+		event.OrganizationID,
+		"1000",
+	).Scan(&cashAccountID)
+	if err != nil {
+		return model.Payment{}, false, fmt.Errorf("find cash account: %w", err)
+	}
+
+	var receivableAccountID string
+
+	err = tx.QueryRow(
+		ctx,
+		findLedgerAccountQuery,
+		event.OrganizationID,
+		"1100",
+	).Scan(&receivableAccountID)
+	if err != nil {
+		return model.Payment{}, false, fmt.Errorf("find accounts receivable account: %w", err)
+	}
+
+	const insertJournalEntryQuery = `
+		INSERT INTO journal_entries (
+			organization_id,
+			reference_type,
+			reference_id,
+			description
+		)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id::text
+	`
+
+	var journalEntryID string
+
+	err = tx.QueryRow(
+		ctx,
+		insertJournalEntryQuery,
+		event.OrganizationID,
+		"PAYMENT",
+		payment.ID,
+		fmt.Sprintf("Payment received for invoice %s", event.InvoiceID),
+	).Scan(&journalEntryID)
+	if err != nil {
+		return model.Payment{}, false, fmt.Errorf("create journal entry: %w", err)
+	}
+
+	const insertJournalLinesQuery = `
+		INSERT INTO journal_lines (
+			journal_entry_id,
+			ledger_account_id,
+			debit,
+			credit,
+			currency
+		)
+		VALUES
+			($1, $2, $3, 0, $4),
+			($1, $5, 0, $3, $4)
+	`
+
+	_, err = tx.Exec(
+		ctx,
+		insertJournalLinesQuery,
+		journalEntryID,
+		cashAccountID,
+		event.Amount,
+		event.Currency,
+		receivableAccountID,
+	)
+	if err != nil {
+		return model.Payment{}, false, fmt.Errorf("create journal lines: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
