@@ -58,6 +58,7 @@ async function getFromAPI<T>(path: string): Promise<T> {
 
 export async function getInvoices() {
   const { organizationID } = getConfiguration();
+
   const query = new URLSearchParams({
     organization_id: organizationID,
   });
@@ -71,6 +72,7 @@ export async function getInvoices() {
 
 export async function getJournalEntries() {
   const { organizationID } = getConfiguration();
+
   const query = new URLSearchParams({
     organization_id: organizationID,
   });
