@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CreateInvoiceForm } from "@/components/create-invoice-form";
+import { IssueInvoiceButton } from "@/components/issue-invoice-button";
 import { getCustomers, getInvoices } from "@/lib/api";
 
 export const instant = false;
@@ -70,6 +71,7 @@ export default async function InvoicesPage() {
                   <th>Customer</th>
                   <th>Due Date</th>
                   <th>Status</th>
+                  <th>Action</th>
                   <th className="amount">Amount</th>
                 </tr>
               </thead>
@@ -83,6 +85,13 @@ export default async function InvoicesPage() {
                       <span className={`badge badge-${invoice.status.toLowerCase()}`}>
                         {invoice.status}
                       </span>
+                    </td>
+                    <td>
+                      {invoice.status === "DRAFT" ? (
+                        <IssueInvoiceButton invoiceID={invoice.id} />
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td className="amount">
                       {formatCurrency(invoice.amount, invoice.currency)}

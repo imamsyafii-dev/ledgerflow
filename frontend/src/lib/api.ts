@@ -117,6 +117,33 @@ export async function createInvoice(input: CreateInvoiceInput) {
   return payload.data;
 }
 
+export async function issueInvoice(invoiceID: string) {
+  const { apiBaseURL, organizationID } = getConfiguration();
+
+  const response = await fetch(
+    `${apiBaseURL}/api/v1/invoices/${invoiceID}/issue`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        organization_id: organizationID,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+
+    throw new Error(payload?.error ?? "Failed to issue invoice");
+  }
+
+  const payload = await response.json() as ApiResponse<Invoice>;
+
+  return payload.data;
+}
+
 export async function getCustomers() {
   const { organizationID } = getConfiguration();
 
