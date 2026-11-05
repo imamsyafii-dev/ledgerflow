@@ -4,9 +4,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/http/handler"
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/repository"
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/service"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func New() *gin.Engine {
+func New(db *pgxpool.Pool) *gin.Engine {
 	engine := gin.Default()
 
 	engine.GET("/health", func(c *gin.Context) {
@@ -15,6 +19,15 @@ func New() *gin.Engine {
 			"service": "ledgerflow-api",
 		})
 	})
+
+	organizationRepository := repository.NewOrganizationRepository(db)
+	organizationService := service.NewOrganizationService(organizationRepository)
+	organizationHandler := handler.NewOrganizationHandler(organizationService)
+
+	api := engine.Group("/api/v1")
+	{
+		api.POST("/organizations", organizationHandler.Create)
+	}
 
 	return engine
 }

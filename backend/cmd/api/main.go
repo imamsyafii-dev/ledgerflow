@@ -23,7 +23,7 @@ func main() {
 
 	log.Println("connected to PostgreSQL")
 
-	engine := router.New()
+	engine := router.New(db)
 
 	if err := engine.Run(":8080"); err != nil {
 		log.Fatal(err)
