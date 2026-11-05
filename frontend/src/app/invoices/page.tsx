@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CreateInvoiceForm } from "@/components/create-invoice-form";
 import { IssueInvoiceButton } from "@/components/issue-invoice-button";
+import { SimulatePaymentButton } from "@/components/simulate-payment-button";
 import { getCustomers, getInvoices } from "@/lib/api";
 
 export const instant = false;
@@ -87,11 +88,19 @@ export default async function InvoicesPage() {
                       </span>
                     </td>
                     <td>
-                      {invoice.status === "DRAFT" ? (
+                      {invoice.status === "DRAFT" && (
                         <IssueInvoiceButton invoiceID={invoice.id} />
-                      ) : (
-                        "-"
                       )}
+
+                      {invoice.status === "ISSUED" && (
+                        <SimulatePaymentButton
+                          invoiceID={invoice.id}
+                          amount={invoice.amount}
+                          currency={invoice.currency}
+                        />
+                      )}
+
+                      {invoice.status !== "DRAFT" && invoice.status !== "ISSUED" && "-"}
                     </td>
                     <td className="amount">
                       {formatCurrency(invoice.amount, invoice.currency)}

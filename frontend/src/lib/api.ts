@@ -144,6 +144,41 @@ export async function issueInvoice(invoiceID: string) {
   return payload.data;
 }
 
+export type SimulatePaymentInput = {
+  invoiceID: string;
+  amount: number;
+  currency: string;
+};
+
+export async function simulateMockPayment(input: SimulatePaymentInput) {
+  const { apiBaseURL, organizationID } = getConfiguration();
+  const uniqueID = crypto.randomUUID();
+
+  const response = await fetch(`${apiBaseURL}/webhooks/mock-gateway`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      event_id: `evt_mock_${uniqueID}`,
+      event_type: "payment.succeeded",
+      payment_id: `pay_mock_${uniqueID}`,
+      organization_id: organizationID,
+      invoice_id: input.invoiceID,
+      amount: input.amount,
+      currency: input.currency,
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+
+    throw new Error(payload?.error ?? "Failed to simulate payment");
+  }
+
+  return response.json();
+}
+
 export async function getCustomers() {
   const { organizationID } = getConfiguration();
 
