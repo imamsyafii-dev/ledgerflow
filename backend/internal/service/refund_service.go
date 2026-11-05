@@ -41,6 +41,13 @@ type RefundRepository interface {
 		status model.RefundStatus,
 		note string,
 	) (model.RefundRequest, error)
+
+	Execute(
+		ctx context.Context,
+		organizationID string,
+		refundID string,
+		executedBy string,
+	) (model.RefundRequest, error)
 }
 
 type RefundService struct {
@@ -106,4 +113,56 @@ func (s *RefundService) Decide(
 	actorID string,
 	status model.RefundStatus,
 	note string,
-) (model.RefundRequest, error
+) (model.RefundRequest, error) {
+	note = strings.TrimSpace(note)
+
+	if status != model.RefundStatusApproved &&
+		status != model.RefundStatusRejected {
+		return model.RefundRequest{}, ErrInvalidRefund
+	}
+
+	if status == model.RefundStatusRejected && note == "" {
+		return model.RefundRequest{}, ErrInvalidRefund
+	}
+
+	refund, err := s.repository.Decide(
+		ctx,
+		organizationID,
+		refundID,
+		actorID,
+		status,
+		note,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return model.RefundRequest{}, ErrRefundNotFound
+	}
+
+	return refund, err
+}
+
+func (s *RefundService) Execute(
+	ctx context.Context,
+	organizationID string,
+	refundID string,
+	executedBy string,
+) (model.RefundRequest, error) {
+	organizationID = strings.TrimSpace(organizationID)
+	refundID = strings.TrimSpace(refundID)
+	executedBy = strings.TrimSpace(executedBy)
+
+	if organizationID == "" || refundID == "" || executedBy == "" {
+		return model.RefundRequest{}, ErrInvalidRefund
+	}
+
+	refund, err := s.repository.Execute(
+		ctx,
+		organizationID,
+		refundID,
+		executedBy,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return model.RefundRequest{}, ErrRefundNotFound
+	}
+
+	return refund, err
+}
