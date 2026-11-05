@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/http/middleware"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/service"
 )
 
@@ -19,9 +20,16 @@ func NewLedgerHandler(service *service.LedgerService) *LedgerHandler {
 }
 
 func (h *LedgerHandler) ListJournalEntries(c *gin.Context) {
+	organizationID, exists := middleware.OrganizationID(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "invalid session context",
+		})
+		return
+	}
 	entries, err := h.service.ListJournalEntries(
 		c.Request.Context(),
-		c.Query("organization_id"),
+		organizationID,
 	)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidLedgerRequest) {
