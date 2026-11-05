@@ -277,3 +277,71 @@ func (r *PaymentRepository) ProcessSucceededWebhook(
 
 	return payment, false, nil
 }
+
+func (r *PaymentRepository) List(
+	ctx context.Context,
+	organizationID string,
+) ([]model.Payment, error) {
+	const query = `
+		SELECT
+			p.id::text,
+			p.organization_id::text,
+			p.invoice_id::text,
+			i.number,
+			c.name,
+			p.provider,
+			p.provider_payment_id,
+			p.amount,
+			p.currency,
+			p.status,
+			p.paid_at,
+			p.created_at,
+			p.updated_at
+		FROM payments p
+		JOIN invoices i
+			ON i.id = p.invoice_id
+		JOIN customers c
+			ON c.id = i.customer_id
+		WHERE p.organization_id = $1
+		ORDER BY p.created_at DESC
+	`
+
+	rows, err := r.db.Query(ctx, query, organizationID)
+	if err != nil {
+		return nil, fmt.Errorf("list payments: %w", err)
+	}
+	defer rows.Close()
+
+	payments := make([]model.Payment, 0)
+
+	for rows.Next() {
+		var payment model.Payment
+
+		err := rows.Scan(
+			&payment.ID,
+			&payment.OrganizationID,
+			&payment.InvoiceID,
+			&payment.InvoiceNumber,
+			&payment.CustomerName,
+			&payment.Provider,
+			&payment.ProviderPaymentID,
+			&payment.Amount,
+			&payment.Currency,
+			&payment.Status,
+			&payment.PaidAt,
+			&payment.CreatedAt,
+			&payment.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scan payment: %w", err)
+		}
+
+		payments = append(payments, payment)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate payments: %w", err)
+	}
+
+	return payments, nil
+}

@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+var ErrInvalidPaymentRequest = errors.New("invalid payment request")
 var ErrInvalidPaymentWebhook = errors.New("invalid payment webhook")
 var ErrPaymentRejected = errors.New("payment rejected")
 
@@ -19,6 +20,10 @@ type PaymentRepository interface {
 		event model.PaymentSucceededWebhook,
 		payload []byte,
 	) (model.Payment, bool, error)
+	List(
+		ctx context.Context,
+		organizationID string,
+	) ([]model.Payment, error)
 }
 
 type PaymentService struct {
@@ -102,4 +107,20 @@ func (s *PaymentService) ProcessSucceededWebhook(
 	}
 
 	return payment, duplicate, nil
+}
+
+func (s *PaymentService) List(
+	ctx context.Context,
+	organizationID string,
+) ([]model.Payment, error) {
+	organizationID = strings.TrimSpace(organizationID)
+
+	if organizationID == "" {
+		return nil, fmt.Errorf(
+			"%w: organization_id is required",
+			ErrInvalidPaymentRequest,
+		)
+	}
+
+	return s.repository.List(ctx, organizationID)
 }
