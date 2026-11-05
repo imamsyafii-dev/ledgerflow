@@ -145,6 +145,29 @@ func (r *PaymentRepository) ProcessSucceededWebhook(
 		return model.Payment{}, false, fmt.Errorf("create payment: %w", err)
 	}
 
+	const insertReconciliationQuery = `
+	INSERT INTO reconciliations (
+		organization_id,
+		invoice_id,
+		payment_id,
+		amount,
+		status
+	)
+	VALUES ($1, $2, $3, $4, 'MATCHED')
+`
+
+	_, err = tx.Exec(
+		ctx,
+		insertReconciliationQuery,
+		event.OrganizationID,
+		event.InvoiceID,
+		payment.ID,
+		event.Amount,
+	)
+	if err != nil {
+		return model.Payment{}, false, fmt.Errorf("create reconciliation: %w", err)
+	}
+
 	if err := tx.Commit(ctx); err != nil {
 		return model.Payment{}, false, fmt.Errorf("commit payment transaction: %w", err)
 	}
