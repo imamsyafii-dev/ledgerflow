@@ -144,3 +144,58 @@ func (r *InvoiceRepository) List(
 
 	return invoices, nil
 }
+
+func (r *InvoiceRepository) Issue(
+	ctx context.Context,
+	organizationID string,
+	invoiceID string,
+) (model.Invoice, error) {
+	const query = `
+		UPDATE invoices
+		SET
+			status = 'ISSUED',
+			updated_at = NOW()
+		WHERE
+			id = $1
+			AND organization_id = $2
+			AND status = 'DRAFT'
+		RETURNING
+			id::text,
+			organization_id::text,
+			customer_id::text,
+			number,
+			amount,
+			currency,
+			status,
+			due_date,
+			paid_at,
+			created_at,
+			updated_at
+	`
+
+	var invoice model.Invoice
+
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		invoiceID,
+		organizationID,
+	).Scan(
+		&invoice.ID,
+		&invoice.OrganizationID,
+		&invoice.CustomerID,
+		&invoice.Number,
+		&invoice.Amount,
+		&invoice.Currency,
+		&invoice.Status,
+		&invoice.DueDate,
+		&invoice.PaidAt,
+		&invoice.CreatedAt,
+		&invoice.UpdatedAt,
+	)
+	if err != nil {
+		return model.Invoice{}, fmt.Errorf("issue invoice: %w", err)
+	}
+
+	return invoice, nil
+}

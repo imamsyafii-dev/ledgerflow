@@ -26,6 +26,11 @@ type InvoiceRepository interface {
 		ctx context.Context,
 		organizationID string,
 	) ([]model.Invoice, error)
+	Issue(
+		ctx context.Context,
+		organizationID string,
+		invoiceID string,
+	) (model.Invoice, error)
 }
 
 type InvoiceService struct {
@@ -102,4 +107,29 @@ func (s *InvoiceService) List(
 	}
 
 	return s.repository.List(ctx, organizationID)
+}
+
+func (s *InvoiceService) Issue(
+	ctx context.Context,
+	organizationID string,
+	invoiceID string,
+) (model.Invoice, error) {
+	organizationID = strings.TrimSpace(organizationID)
+	invoiceID = strings.TrimSpace(invoiceID)
+
+	if organizationID == "" {
+		return model.Invoice{}, fmt.Errorf(
+			"%w: organization_id is required",
+			ErrInvalidInvoice,
+		)
+	}
+
+	if invoiceID == "" {
+		return model.Invoice{}, fmt.Errorf(
+			"%w: invoice_id is required",
+			ErrInvalidInvoice,
+		)
+	}
+
+	return s.repository.Issue(ctx, organizationID, invoiceID)
 }
