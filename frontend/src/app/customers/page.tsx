@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CreateCustomerForm } from "@/components/create-customer-form";
 import { getCustomers } from "@/lib/api";
 
 export const instant = false;
@@ -19,7 +20,7 @@ export default async function CustomersPage() {
           <p className="eyebrow">Directory</p>
           <h1>Customers</h1>
           <p className="subtitle">
-            Daftar customer yang terhubung dengan invoice Anda.
+            Kelola customer yang menerima invoice dari organization Anda.
           </p>
         </div>
 
@@ -28,7 +29,25 @@ export default async function CustomersPage() {
         </Link>
       </section>
 
-      <article className="panel">
+      <section className="panel form-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">New customer</p>
+            <h2>Create Customer</h2>
+          </div>
+        </div>
+
+        <CreateCustomerForm />
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">Directory</p>
+            <h2>All Customers</h2>
+          </div>
+        </div>
+
         {customers.length === 0 ? (
           <p className="empty-state">Belum ada customer.</p>
         ) : (
@@ -53,7 +72,7 @@ export default async function CustomersPage() {
             </table>
           </div>
         )}
-      </article>
+      </section>
     </main>
   );
 }

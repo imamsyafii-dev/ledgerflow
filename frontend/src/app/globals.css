@@ -347,7 +347,8 @@ th {
   margin-bottom: 24px;
 }
 
-.invoice-form {
+.invoice-form,
+.customer-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
@@ -414,7 +415,8 @@ th {
 }
 
 @media (max-width: 640px) {
-  .invoice-form {
+  .invoice-form,
+  .customer-form {
     grid-template-columns: 1fr;
   }
 }

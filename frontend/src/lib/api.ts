@@ -25,6 +25,11 @@ export type CreateInvoiceInput = {
   dueDate: string;
 };
 
+export type CreateCustomerInput = {
+  name: string;
+  email: string;
+};
+
 export type JournalLine = {
   account_code: string;
   account_name: string;
@@ -191,6 +196,32 @@ export async function getCustomers() {
   );
 
   return response.data;
+}
+
+export async function createCustomer(input: CreateCustomerInput) {
+  const { apiBaseURL, organizationID } = getConfiguration();
+
+  const response = await fetch(`${apiBaseURL}/api/v1/customers`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      organization_id: organizationID,
+      name: input.name,
+      email: input.email,
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+
+    throw new Error(payload?.error ?? "Failed to create customer");
+  }
+
+  const payload = await response.json() as ApiResponse<Customer>;
+
+  return payload.data;
 }
 
 export async function getJournalEntries() {
