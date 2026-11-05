@@ -58,3 +58,27 @@ func (h *CustomerHandler) Create(c *gin.Context) {
 		"data": customer,
 	})
 }
+
+func (h *CustomerHandler) List(c *gin.Context) {
+	customers, err := h.service.List(
+		c.Request.Context(),
+		c.Query("organization_id"),
+	)
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidCustomer) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to list customers",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": customers,
+	})
+}

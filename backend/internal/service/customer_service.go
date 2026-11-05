@@ -18,6 +18,10 @@ type CustomerRepository interface {
 		name string,
 		email string,
 	) (model.Customer, error)
+	List(
+		ctx context.Context,
+		organizationID string,
+	) ([]model.Customer, error)
 }
 
 type CustomerService struct {
@@ -55,4 +59,20 @@ func (s *CustomerService) Create(
 	}
 
 	return s.repository.Create(ctx, organizationID, name, email)
+}
+
+func (s *CustomerService) List(
+	ctx context.Context,
+	organizationID string,
+) ([]model.Customer, error) {
+	organizationID = strings.TrimSpace(organizationID)
+
+	if organizationID == "" {
+		return nil, fmt.Errorf(
+			"%w: organization_id is required",
+			ErrInvalidCustomer,
+		)
+	}
+
+	return s.repository.List(ctx, organizationID)
 }
