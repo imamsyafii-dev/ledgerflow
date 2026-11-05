@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/http/middleware"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/service"
 )
 
@@ -13,9 +14,8 @@ type CustomerHandler struct {
 }
 
 type createCustomerRequest struct {
-	OrganizationID string `json:"organization_id"`
-	Name           string `json:"name"`
-	Email          string `json:"email"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 func NewCustomerHandler(service *service.CustomerService) *CustomerHandler {
@@ -26,6 +26,13 @@ func NewCustomerHandler(service *service.CustomerService) *CustomerHandler {
 
 func (h *CustomerHandler) Create(c *gin.Context) {
 	var request createCustomerRequest
+	organizationID, exists := middleware.OrganizationID(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "invalid session context",
+		})
+		return
+	}
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -36,7 +43,7 @@ func (h *CustomerHandler) Create(c *gin.Context) {
 
 	customer, err := h.service.Create(
 		c.Request.Context(),
-		request.OrganizationID,
+		organizationID,
 		request.Name,
 		request.Email,
 	)
@@ -60,9 +67,17 @@ func (h *CustomerHandler) Create(c *gin.Context) {
 }
 
 func (h *CustomerHandler) List(c *gin.Context) {
+	organizationID, exists := middleware.OrganizationID(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "invalid session context",
+		})
+		return
+	}
+
 	customers, err := h.service.List(
 		c.Request.Context(),
-		c.Query("organization_id"),
+		organizationID,
 	)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCustomer) {

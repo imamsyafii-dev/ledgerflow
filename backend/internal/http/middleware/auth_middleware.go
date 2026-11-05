@@ -38,3 +38,17 @@ func RequireAuth(jwtSecret string) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func OrganizationID(c *gin.Context) (string, bool) {
+	value, exists := c.Get(OrganizationIDContextKey)
+	if !exists {
+		return "", false
+	}
+
+	organizationID, ok := value.(string)
+	if !ok || organizationID == "" {
+		return "", false
+	}
+
+	return organizationID, true
+}

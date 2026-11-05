@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/http/middleware"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/service"
 )
 
@@ -13,16 +14,11 @@ type InvoiceHandler struct {
 }
 
 type createInvoiceRequest struct {
-	OrganizationID string `json:"organization_id"`
-	CustomerID     string `json:"customer_id"`
-	Number         string `json:"number"`
-	Amount         int64  `json:"amount"`
-	Currency       string `json:"currency"`
-	DueDate        string `json:"due_date"`
-}
-
-type issueInvoiceRequest struct {
-	OrganizationID string `json:"organization_id"`
+	CustomerID string `json:"customer_id"`
+	Number     string `json:"number"`
+	Amount     int64  `json:"amount"`
+	Currency   string `json:"currency"`
+	DueDate    string `json:"due_date"`
 }
 
 func NewInvoiceHandler(service *service.InvoiceService) *InvoiceHandler {
@@ -34,6 +30,14 @@ func NewInvoiceHandler(service *service.InvoiceService) *InvoiceHandler {
 func (h *InvoiceHandler) Create(c *gin.Context) {
 	var request createInvoiceRequest
 
+	organizationID, exists := middleware.OrganizationID(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "invalid session context",
+		})
+		return
+	}
+
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid request body",
@@ -43,7 +47,7 @@ func (h *InvoiceHandler) Create(c *gin.Context) {
 
 	invoice, err := h.service.Create(
 		c.Request.Context(),
-		request.OrganizationID,
+		organizationID,
 		request.CustomerID,
 		request.Number,
 		request.Amount,
@@ -70,7 +74,13 @@ func (h *InvoiceHandler) Create(c *gin.Context) {
 }
 
 func (h *InvoiceHandler) List(c *gin.Context) {
-	organizationID := c.Query("organization_id")
+	organizationID, exists := middleware.OrganizationID(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "invalid session context",
+		})
+		return
+	}
 
 	invoices, err := h.service.List(
 		c.Request.Context(),
@@ -96,18 +106,17 @@ func (h *InvoiceHandler) List(c *gin.Context) {
 }
 
 func (h *InvoiceHandler) Issue(c *gin.Context) {
-	var request issueInvoiceRequest
-
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid request body",
+	organizationID, exists := middleware.OrganizationID(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "invalid session context",
 		})
 		return
 	}
 
 	invoice, err := h.service.Issue(
 		c.Request.Context(),
-		request.OrganizationID,
+		organizationID,
 		c.Param("invoice_id"),
 	)
 	if err != nil {
