@@ -45,6 +45,20 @@ export type JournalEntry = {
   lines: JournalLine[];
 };
 
+export type Payment = {
+  id: string;
+  invoice_id: string;
+  invoice_number: string;
+  customer_name: string;
+  provider: string;
+  provider_payment_id: string;
+  amount: number;
+  currency: string;
+  status: "PENDING" | "SUCCEEDED" | "FAILED" | "REFUNDED";
+  paid_at: string | null;
+  created_at: string;
+};
+
 type ApiResponse<T> = {
   data: T;
 };
@@ -233,6 +247,20 @@ export async function getJournalEntries() {
 
   const response = await getFromAPI<ApiResponse<JournalEntry[]>>(
     `/api/v1/ledger/journal-entries?${query}`,
+  );
+
+  return response.data;
+}
+
+export async function getPayments() {
+  const { organizationID } = getConfiguration();
+
+  const query = new URLSearchParams({
+    organization_id: organizationID,
+  });
+
+  const response = await getFromAPI<ApiResponse<Payment[]>>(
+    `/api/v1/payments?${query}`,
   );
 
   return response.data;
