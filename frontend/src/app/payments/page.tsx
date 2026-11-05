@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getPayments } from "@/lib/server-api";
+import { getCurrentUser } from "@/lib/server-api";
+import { RequestRefundButton } from "@/components/request-refund-button";
 
 export const instant = false;
 
@@ -24,6 +26,7 @@ function formatDate(value: string | null) {
 
 export default async function PaymentsPage() {
   const payments = await getPayments();
+  const currentUser = await getCurrentUser();
 
   return (
     <main className="dashboard">
@@ -56,6 +59,7 @@ export default async function PaymentsPage() {
                   <th>Status</th>
                   <th>Paid At</th>
                   <th className="amount">Amount</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -74,6 +78,7 @@ export default async function PaymentsPage() {
                     <td className="amount">
                       {formatCurrency(payment.amount, payment.currency)}
                     </td>
+                    <td>{currentUser.role==="finance_admin"&&payment.status==="SUCCEEDED"?<RequestRefundButton paymentID={payment.id}/>: "-"}</td>
                   </tr>
                 ))}
               </tbody>

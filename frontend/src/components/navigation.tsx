@@ -30,9 +30,7 @@ export function Navigation() {
     return null;
   }
 
-  const visibleNavigationItems = currentUser?.role === "finance_admin"
-    ? [...navigationItems, { href: "/users", label: "Users" }]
-    : navigationItems;
+  const visibleNavigationItems = currentUser?.role === "finance_admin" ? [...navigationItems,{href:"/users",label:"Users"},{href:"/refunds",label:"Refunds"}] : currentUser?.role === "approver" ? [...navigationItems,{href:"/refunds",label:"Refunds"}] : navigationItems;
 
   return (
     <header className="top-navigation">

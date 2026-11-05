@@ -91,6 +91,9 @@ export type Reconciliation = {
   status: "MATCHED" | "MANUAL_REVIEW" | "REVERSED";
   reconciled_at: string;
 };
+export type RefundRequest={id:string;payment_id:string;invoice_number:string;customer_name:string;amount:number;currency:string;requested_by:string;requested_by_name:string;reason:string;status:"PENDING"|"APPROVED"|"REJECTED";decided_by:string|null;decision_note:string|null;decided_at:string|null;created_at:string};
+export async function decideRefund(id:string,status:"APPROVED"|"REJECTED",note:string){const response=await fetch(`${getAPIBaseURL()}/api/v1/refund-requests/${id}/decision`,{method:"PATCH",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({status,note})});if(!response.ok){const p=await response.json().catch(()=>null);throw new Error(p?.error??"Failed to decide refund")}return response.json()}
+export async function requestRefund(paymentID:string,reason:string){const r=await fetch(`${getAPIBaseURL()}/api/v1/payments/${paymentID}/refund-requests`,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({reason})});if(!r.ok){const p=await r.json().catch(()=>null);throw new Error(p?.error??"Failed to request refund")}return r.json()}
 
 type ApiResponse<T> = {
   data: T;

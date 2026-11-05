@@ -62,6 +62,7 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 	)
 	userService := service.NewUserService(authUserRepository)
 	userHandler := handler.NewUserHandler(userService)
+	refundHandler := handler.NewRefundHandler(service.NewRefundService(repository.NewRefundRepository(db)))
 
 	engine.POST("/api/v1/organizations", organizationHandler.Create)
 
@@ -100,6 +101,9 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 			middleware.RequireRole(model.UserRoleFinanceAdmin),
 			userHandler.List,
 		)
+		api.POST("/payments/:payment_id/refund-requests", middleware.RequireRole(model.UserRoleFinanceAdmin), refundHandler.Create)
+		api.GET("/refund-requests", middleware.RequireRole(model.UserRoleFinanceAdmin, model.UserRoleApprover), refundHandler.List)
+		api.PATCH("/refund-requests/:refund_id/decision", middleware.RequireRole(model.UserRoleApprover), refundHandler.Decide)
 		api.POST(
 			"/users",
 			middleware.RequireRole(model.UserRoleFinanceAdmin),

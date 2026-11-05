@@ -1,0 +1,3 @@
+"use client";
+import {useRouter} from "next/navigation";import {decideRefund,type RefundRequest} from "@/lib/api";
+export function RefundDecisionActions({refund}:{refund:RefundRequest}){const router=useRouter();async function decide(status:"APPROVED"|"REJECTED"){const note=status==="REJECTED"?window.prompt("Reason for rejection:")??"":"";if(status==="REJECTED"&&!note)return;try{await decideRefund(refund.id,status,note);router.refresh()}catch(e){alert(e instanceof Error?e.message:"Failed")}}if(refund.status!=="PENDING")return null;return <><button className="secondary-button" onClick={()=>decide("APPROVED")}>Approve</button>{" "}<button className="danger-button" onClick={()=>decide("REJECTED")}>Reject</button></>}

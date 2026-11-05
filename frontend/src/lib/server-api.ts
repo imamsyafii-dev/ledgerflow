@@ -7,7 +7,8 @@ import type {
   Invoice,
 	JournalEntry,
 	Payment,
-	Reconciliation,
+  Reconciliation,
+  RefundRequest,
 	User,
 } from "@/lib/api";
 
@@ -87,6 +88,7 @@ export async function getReconciliations() {
 
   return response.data;
 }
+export async function getRefundRequests(){const response=await getFromAPI<ApiResponse<RefundRequest[]>>("/api/v1/refund-requests");return response.data}
 
 export async function getJournalEntries() {
   const response = await getFromAPI<ApiResponse<JournalEntry[]>>(
