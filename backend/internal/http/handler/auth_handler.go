@@ -6,10 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/auth"
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/http/middleware"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/service"
 )
-
-const accessTokenCookieName = "ledgerflow_access_token"
 
 type AuthHandler struct {
 	service      *service.AuthService
@@ -61,7 +60,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     accessTokenCookieName,
+		Name:     auth.AccessTokenCookieName,
 		Value:    token,
 		Path:     "/",
 		MaxAge:   int(auth.AccessTokenDuration.Seconds()),
@@ -77,7 +76,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 func (h *AuthHandler) Logout(c *gin.Context) {
 	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     accessTokenCookieName,
+		Name:     auth.AccessTokenCookieName,
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
@@ -87,4 +86,29 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	})
 
 	c.Status(http.StatusNoContent)
+}
+
+func (h *AuthHandler) Me(c *gin.Context) {
+	userID, exists := c.Get(middleware.UserIDContextKey)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "authentication required",
+		})
+		return
+	}
+
+	user, err := h.service.GetCurrentUser(
+		c.Request.Context(),
+		userID.(string),
+	)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "invalid or expired session",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": user,
+	})
 }

@@ -113,3 +113,42 @@ func (r *UserRepository) FindByEmail(
 
 	return user, nil
 }
+
+func (r *UserRepository) FindByID(
+	ctx context.Context,
+	userID string,
+) (model.User, error) {
+	const query = `
+		SELECT
+			id::text,
+			organization_id::text,
+			name,
+			email,
+			password_hash,
+			role,
+			is_active,
+			created_at,
+			updated_at
+		FROM users
+		WHERE id = $1
+	`
+
+	var user model.User
+
+	err := r.db.QueryRow(ctx, query, userID).Scan(
+		&user.ID,
+		&user.OrganizationID,
+		&user.Name,
+		&user.Email,
+		&user.PasswordHash,
+		&user.Role,
+		&user.IsActive,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		return model.User{}, fmt.Errorf("find user by ID: %w", err)
+	}
+
+	return user, nil
+}

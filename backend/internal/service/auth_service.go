@@ -18,6 +18,10 @@ type AuthUserRepository interface {
 		ctx context.Context,
 		email string,
 	) (model.User, error)
+	FindByID(
+		ctx context.Context,
+		userID string,
+	) (model.User, error)
 }
 
 type AuthService struct {
@@ -74,4 +78,20 @@ func (s *AuthService) Login(
 	}
 
 	return user, token, nil
+}
+
+func (s *AuthService) GetCurrentUser(
+	ctx context.Context,
+	userID string,
+) (model.User, error) {
+	user, err := s.userRepository.FindByID(ctx, userID)
+	if err != nil {
+		return model.User{}, fmt.Errorf("get current user: %w", err)
+	}
+
+	if !user.IsActive {
+		return model.User{}, ErrInvalidCredentials
+	}
+
+	return user, nil
 }

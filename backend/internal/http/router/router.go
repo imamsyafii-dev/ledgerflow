@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/config"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/http/handler"
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/http/middleware"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/repository"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/service"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -85,9 +86,8 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 	)
 
 	api := engine.Group("/api/v1")
+	api.Use(middleware.RequireAuth(cfg.JWTSecret))
 	{
-		api.POST("/auth/login", authHandler.Login)
-		api.POST("/auth/logout", authHandler.Logout)
 		api.POST("/organizations", organizationHandler.Create)
 		api.POST("/customers", customerHandler.Create)
 		api.GET("/customers", customerHandler.List)
@@ -97,6 +97,17 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 		api.GET("/ledger/journal-entries", ledgerHandler.ListJournalEntries)
 		api.GET("/payments", paymentHandler.List)
 		api.GET("/reconciliations", reconciliationHandler.List)
+	}
+
+	authRoutes := engine.Group("/api/v1/auth")
+	{
+		authRoutes.POST("/login", authHandler.Login)
+		authRoutes.POST("/logout", authHandler.Logout)
+		authRoutes.GET(
+			"/me",
+			middleware.RequireAuth(cfg.JWTSecret),
+			authHandler.Me,
+		)
 	}
 
 	engine.POST("/webhooks/mock-gateway", paymentWebhookHandler.HandleSucceeded)

@@ -7,6 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const AccessTokenCookieName = "ledgerflow_access_token"
 const AccessTokenDuration = 24 * time.Hour
 
 type Claims struct {
@@ -41,4 +42,32 @@ func GenerateAccessToken(
 	}
 
 	return signedToken, nil
+}
+
+func ParseAccessToken(
+	tokenString string,
+	secret string,
+) (Claims, error) {
+	var claims Claims
+
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&claims,
+		func(token *jwt.Token) (any, error) {
+			if token.Method != jwt.SigningMethodHS256 {
+				return nil, fmt.Errorf("unexpected signing method")
+			}
+
+			return []byte(secret), nil
+		},
+	)
+	if err != nil {
+		return Claims{}, fmt.Errorf("parse access token: %w", err)
+	}
+
+	if !token.Valid {
+		return Claims{}, fmt.Errorf("invalid access token")
+	}
+
+	return claims, nil
 }
