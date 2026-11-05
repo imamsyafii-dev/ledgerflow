@@ -2,7 +2,9 @@ package router
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/http/handler"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/repository"
@@ -12,6 +14,27 @@ import (
 
 func New(db *pgxpool.Pool) *gin.Engine {
 	engine := gin.Default()
+
+	engine.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			"http://localhost:3000",
+		},
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+			http.MethodOptions,
+		},
+		AllowHeaders: []string{
+			"Origin",
+			"Content-Type",
+			"Accept",
+			"Authorization",
+		},
+		MaxAge: 12 * time.Hour,
+	}))
 
 	engine.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
