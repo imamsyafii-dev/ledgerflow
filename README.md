@@ -32,13 +32,31 @@ Alur inti Ledgerflow saat ini:
 - Payment recording
 - Automatic invoice reconciliation
 - Double-entry ledger sederhana
+- Refund request, approval, rejection, dan execution melalui mock gateway
+- Payment status update menjadi `REFUNDED` dan ledger reversal untuk refund
 - Dashboard finance
 - Halaman customer, invoice, payment, reconciliation, dan ledger
 - PostgreSQL melalui Docker Compose
 - Go backend dengan Gin
 - Next.js dashboard frontend
 
-> Role disimpan di user dan JWT. Endpoint daftar user dibatasi untuk `finance_admin`; pembuatan user, perubahan role, dan perubahan status user masih masuk roadmap.
+> Role disimpan di user dan JWT. User management dibatasi untuk `finance_admin`.
+
+## Refund flow
+
+```text
+Payment SUCCEEDED
+      ↓
+Finance admin request refund
+      ↓
+Approver approve atau reject
+      ↓
+Finance admin execute approved refund
+      ↓
+Payment REFUNDED + ledger reversal
+```
+
+Refund execution saat local development menggunakan mock gateway. Pada production, proses ini akan memanggil Refund API dari provider pembayaran.
 
 ## Arsitektur
 
@@ -208,6 +226,10 @@ Buka `http://localhost:3000`.
 | GET | `/api/v1/invoices` | Menampilkan invoice organisasi aktif |
 | POST | `/api/v1/invoices/:invoice_id/issue` | Menerbitkan invoice draft |
 | GET | `/api/v1/payments` | Menampilkan payments |
+| POST | `/api/v1/payments/:payment_id/refund-requests` | Membuat refund request; hanya `finance_admin` |
+| GET | `/api/v1/refund-requests` | Menampilkan refund request; `finance_admin` dan `approver` |
+| PATCH | `/api/v1/refund-requests/:refund_id/decision` | Approve atau reject refund; hanya `approver` |
+| POST | `/api/v1/refund-requests/:refund_id/execute` | Mengeksekusi refund; hanya `finance_admin` |
 | GET | `/api/v1/reconciliations` | Menampilkan hasil rekonsiliasi |
 | GET | `/api/v1/ledger/journal-entries` | Menampilkan journal entries |
 | POST | `/webhooks/mock-gateway` | Simulasi webhook payment gateway |

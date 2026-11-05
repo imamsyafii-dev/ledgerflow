@@ -15,6 +15,8 @@ Sudah tersedia:
 - Payment recording
 - Reconciliation record
 - Double-entry ledger dasar
+- Refund request, approval, rejection, dan execution
+- Payment refund status dan ledger reversal
 - Dashboard finance
 - Halaman customer, invoice, payment, reconciliation, dan ledger
 
@@ -74,13 +76,26 @@ Approver menyetujui atau menolak
 Status: approved / rejected
         │
         ▼
-Payment atau refund record diperbarui
+Finance admin mengeksekusi refund
+        │
+        ▼
+Payment REFUNDED dan ledger reversal dibuat
 ```
 
-- Refund request
-- Approval dan rejection
-- Approval notes
-- Role-based authorization
+- ~~Refund request~~
+- ~~Approval dan rejection~~
+- ~~Approval notes~~
+- ~~Role-based authorization~~
+- ~~Mock refund execution~~
+- ~~Payment status update menjadi `REFUNDED`~~
+- ~~Ledger reversal untuk refund~~
+
+Pengembangan lanjutan:
+
+- Integrasi Refund API Midtrans, Xendit, atau Stripe
+- Webhook `refund.succeeded` dan `refund.failed`
+- Background job untuk retry refund gagal
+- Partial refund
 - Audit log untuk seluruh perubahan status
 
 ### 4. Payment Link dan Public Invoice Page
