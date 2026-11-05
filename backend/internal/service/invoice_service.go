@@ -22,6 +22,10 @@ type InvoiceRepository interface {
 		currency string,
 		dueDate time.Time,
 	) (model.Invoice, error)
+	List(
+		ctx context.Context,
+		organizationID string,
+	) ([]model.Invoice, error)
 }
 
 type InvoiceService struct {
@@ -85,4 +89,17 @@ func (s *InvoiceService) Create(
 		currency,
 		parsedDueDate,
 	)
+}
+
+func (s *InvoiceService) List(
+	ctx context.Context,
+	organizationID string,
+) ([]model.Invoice, error) {
+	organizationID = strings.TrimSpace(organizationID)
+
+	if organizationID == "" {
+		return nil, fmt.Errorf("%w: organization_id is required", ErrInvalidInvoice)
+	}
+
+	return s.repository.List(ctx, organizationID)
 }

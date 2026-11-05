@@ -84,3 +84,63 @@ func (r *InvoiceRepository) Create(
 
 	return invoice, nil
 }
+
+func (r *InvoiceRepository) List(
+	ctx context.Context,
+	organizationID string,
+) ([]model.Invoice, error) {
+	const query = `
+		SELECT
+			id::text,
+			organization_id::text,
+			customer_id::text,
+			number,
+			amount,
+			currency,
+			status,
+			due_date,
+			paid_at,
+			created_at,
+			updated_at
+		FROM invoices
+		WHERE organization_id = $1
+		ORDER BY created_at DESC
+	`
+
+	rows, err := r.db.Query(ctx, query, organizationID)
+	if err != nil {
+		return nil, fmt.Errorf("list invoices: %w", err)
+	}
+	defer rows.Close()
+
+	invoices := make([]model.Invoice, 0)
+
+	for rows.Next() {
+		var invoice model.Invoice
+
+		err := rows.Scan(
+			&invoice.ID,
+			&invoice.OrganizationID,
+			&invoice.CustomerID,
+			&invoice.Number,
+			&invoice.Amount,
+			&invoice.Currency,
+			&invoice.Status,
+			&invoice.DueDate,
+			&invoice.PaidAt,
+			&invoice.CreatedAt,
+			&invoice.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scan invoice: %w", err)
+		}
+
+		invoices = append(invoices, invoice)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate invoices: %w", err)
+	}
+
+	return invoices, nil
+}

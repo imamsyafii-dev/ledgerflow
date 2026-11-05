@@ -37,6 +37,7 @@ func New(db *pgxpool.Pool) *gin.Engine {
 		api.POST("/organizations", organizationHandler.Create)
 		api.POST("/customers", customerHandler.Create)
 		api.POST("/invoices", invoiceHandler.Create)
+		api.GET("/invoices", invoiceHandler.List)
 	}
 
 	return engine

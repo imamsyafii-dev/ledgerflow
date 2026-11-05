@@ -64,3 +64,29 @@ func (h *InvoiceHandler) Create(c *gin.Context) {
 		"data": invoice,
 	})
 }
+
+func (h *InvoiceHandler) List(c *gin.Context) {
+	organizationID := c.Query("organization_id")
+
+	invoices, err := h.service.List(
+		c.Request.Context(),
+		organizationID,
+	)
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidInvoice) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to list invoices",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": invoices,
+	})
+}
