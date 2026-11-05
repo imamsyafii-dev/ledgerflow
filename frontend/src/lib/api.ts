@@ -56,21 +56,40 @@ async function getFromAPI<T>(path: string): Promise<T> {
   return response.json();
 }
 
-export async function getDashboardData() {
+export async function getInvoices() {
   const { organizationID } = getConfiguration();
   const query = new URLSearchParams({
     organization_id: organizationID,
   });
 
-  const [invoiceResponse, journalEntryResponse] = await Promise.all([
-    getFromAPI<ApiResponse<Invoice[]>>(`/api/v1/invoices?${query}`),
-    getFromAPI<ApiResponse<JournalEntry[]>>(
-      `/api/v1/ledger/journal-entries?${query}`,
-    ),
+  const response = await getFromAPI<ApiResponse<Invoice[]>>(
+    `/api/v1/invoices?${query}`,
+  );
+
+  return response.data;
+}
+
+export async function getJournalEntries() {
+  const { organizationID } = getConfiguration();
+  const query = new URLSearchParams({
+    organization_id: organizationID,
+  });
+
+  const response = await getFromAPI<ApiResponse<JournalEntry[]>>(
+    `/api/v1/ledger/journal-entries?${query}`,
+  );
+
+  return response.data;
+}
+
+export async function getDashboardData() {
+  const [invoices, journalEntries] = await Promise.all([
+    getInvoices(),
+    getJournalEntries(),
   ]);
 
   return {
-    invoices: invoiceResponse.data,
-    journalEntries: journalEntryResponse.data,
+    invoices,
+    journalEntries,
   };
 }

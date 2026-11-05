@@ -263,3 +263,14 @@ th {
     text-align: left;
   }
 }
+
+.back-link {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--foreground);
+  background: var(--panel);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
