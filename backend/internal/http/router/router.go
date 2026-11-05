@@ -6,19 +6,21 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/config"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/http/handler"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/repository"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/service"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func New(db *pgxpool.Pool) *gin.Engine {
+func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 	engine := gin.Default()
 
 	engine.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
 			"http://localhost:3000",
 		},
+		AllowCredentials: true,
 		AllowMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
@@ -47,6 +49,16 @@ func New(db *pgxpool.Pool) *gin.Engine {
 	organizationService := service.NewOrganizationService(organizationRepository)
 	organizationHandler := handler.NewOrganizationHandler(organizationService)
 
+	authUserRepository := repository.NewUserRepository(db)
+	authService := service.NewAuthService(
+		authUserRepository,
+		cfg.JWTSecret,
+	)
+	authHandler := handler.NewAuthHandler(
+		authService,
+		cfg.AppEnv == "production",
+	)
+
 	customerRepository := repository.NewCustomerRepository(db)
 	customerService := service.NewCustomerService(customerRepository)
 	customerHandler := handler.NewCustomerHandler(customerService)
@@ -74,6 +86,8 @@ func New(db *pgxpool.Pool) *gin.Engine {
 
 	api := engine.Group("/api/v1")
 	{
+		api.POST("/auth/login", authHandler.Login)
+		api.POST("/auth/logout", authHandler.Logout)
 		api.POST("/organizations", organizationHandler.Create)
 		api.POST("/customers", customerHandler.Create)
 		api.GET("/customers", customerHandler.List)
