@@ -1,22 +1,13 @@
 package main
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"github.com/imamsyafii-dev/ledger/backend/internal/http/router"
 )
 
 func main() {
-	router := gin.Default()
+	engine := router.New()
 
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status":  "ok",
-			"service": "ledgerflow-api",
-		})
-	})
-
-	err := router.Run(":8080")
+	err := engine.Run(":8080")
 	if err != nil {
 		panic(err)
 	}
