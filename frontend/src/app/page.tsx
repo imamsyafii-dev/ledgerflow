@@ -1,4 +1,4 @@
-import { getDashboardData } from "@/lib/api";
+import { getDashboardData } from "@/lib/server-api";
 
 export const instant = false;
 

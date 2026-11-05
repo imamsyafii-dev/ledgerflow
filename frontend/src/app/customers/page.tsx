@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CreateCustomerForm } from "@/components/create-customer-form";
-import { getCustomers } from "@/lib/api";
+import { getCustomers } from "@/lib/server-api";
 
 export const instant = false;
 

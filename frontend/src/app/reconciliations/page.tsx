@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getReconciliations } from "@/lib/api";
+import { getReconciliations } from "@/lib/server-api";
 
 export const instant = false;
 

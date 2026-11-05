@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getJournalEntries } from "@/lib/api";
+import { getJournalEntries } from "@/lib/server-api";
 
 export const instant = false;
 

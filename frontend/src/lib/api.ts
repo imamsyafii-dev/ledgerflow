@@ -40,6 +40,9 @@ export type JournalLine = {
 
 export type JournalEntry = {
   id: string;
+  organization_id: string;
+  reference_type: string;
+  reference_id: string;
   description: string;
   entry_date: string;
   lines: JournalLine[];

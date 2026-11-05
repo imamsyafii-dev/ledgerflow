@@ -14,6 +14,9 @@ const navigationItems = [
 
 export function Navigation() {
   const pathname = usePathname();
+  if (pathname === "/login") {
+    return null;
+  }
 
   return (
     <header className="top-navigation">

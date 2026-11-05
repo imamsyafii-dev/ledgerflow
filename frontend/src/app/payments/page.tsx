@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getPayments } from "@/lib/api";
+import { getPayments } from "@/lib/server-api";
 
 export const instant = false;
 

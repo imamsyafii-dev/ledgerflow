@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CreateInvoiceForm } from "@/components/create-invoice-form";
 import { IssueInvoiceButton } from "@/components/issue-invoice-button";
 import { SimulatePaymentButton } from "@/components/simulate-payment-button";
-import { getCustomers, getInvoices } from "@/lib/api";
+import { getCustomers, getInvoices } from "@/lib/server-api";
 
 export const instant = false;
 
