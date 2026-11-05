@@ -152,3 +152,58 @@ func (r *UserRepository) FindByID(
 
 	return user, nil
 }
+
+func (r *UserRepository) ListByOrganization(
+	ctx context.Context,
+	organizationID string,
+) ([]model.User, error) {
+	const query = `
+		SELECT
+			id::text,
+			organization_id::text,
+			name,
+			email,
+			password_hash,
+			role,
+			is_active,
+			created_at,
+			updated_at
+		FROM users
+		WHERE organization_id = $1
+		ORDER BY created_at ASC
+	`
+
+	rows, err := r.db.Query(ctx, query, organizationID)
+	if err != nil {
+		return nil, fmt.Errorf("list users by organization: %w", err)
+	}
+	defer rows.Close()
+
+	users := make([]model.User, 0)
+
+	for rows.Next() {
+		var user model.User
+
+		if err := rows.Scan(
+			&user.ID,
+			&user.OrganizationID,
+			&user.Name,
+			&user.Email,
+			&user.PasswordHash,
+			&user.Role,
+			&user.IsActive,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan user: %w", err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate users: %w", err)
+	}
+
+	return users, nil
+}

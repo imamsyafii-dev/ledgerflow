@@ -10,6 +10,7 @@ const navigationItems = [
   { href: "/payments", label: "Payments" },
   { href: "/reconciliations", label: "Reconciliations" },
   { href: "/customers", label: "Customers" },
+  { href: "/users", label: "Users" },
   { href: "/ledger", label: "Ledger" },
 ];
 

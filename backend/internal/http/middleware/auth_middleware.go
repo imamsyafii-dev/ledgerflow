@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/auth"
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/model"
 )
 
 const (
@@ -51,4 +52,35 @@ func OrganizationID(c *gin.Context) (string, bool) {
 	}
 
 	return organizationID, true
+}
+
+func RequireRole(allowedRoles ...model.UserRole) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		value, exists := c.Get(RoleContextKey)
+		if !exists {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid session context",
+			})
+			return
+		}
+
+		role, ok := value.(string)
+		if !ok || role == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid session context",
+			})
+			return
+		}
+
+		for _, allowedRole := range allowedRoles {
+			if role == string(allowedRole) {
+				c.Next()
+				return
+			}
+		}
+
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+			"error": "insufficient permissions",
+		})
+	}
 }

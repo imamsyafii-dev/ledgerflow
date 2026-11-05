@@ -17,6 +17,17 @@ export type Customer = {
   updated_at: string;
 };
 
+export type User = {
+	id: string;
+	organization_id: string;
+	name: string;
+	email: string;
+	role: "finance_admin" | "approver" | "viewer";
+	is_active: boolean;
+	created_at: string;
+	updated_at: string;
+};
+
 export type CreateInvoiceInput = {
   customerID: string;
   number: string;

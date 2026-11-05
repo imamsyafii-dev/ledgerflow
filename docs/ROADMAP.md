@@ -8,6 +8,7 @@ Sudah tersedia:
 
 - Authentication dasar: login, logout, dan current user
 - Data role: finance admin, approver, dan viewer
+- Daftar user organization untuk finance admin
 - Customer management
 - Invoice management dan issue invoice
 - Mock payment webhook
@@ -23,7 +24,7 @@ Sudah tersedia:
 
 Tujuan: finance admin dapat mengelola user dalam organisasinya dan sistem membatasi akses sesuai role.
 
-- List users per organization
+- ~~List users per organization~~
 - Create user
 - Activate dan deactivate user
 - Ubah role user

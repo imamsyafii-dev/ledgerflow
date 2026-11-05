@@ -9,6 +9,7 @@ import (
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/config"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/http/handler"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/http/middleware"
+	"github.com/imamsyafii-dev/ledgerflow/backend/internal/model"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/repository"
 	"github.com/imamsyafii-dev/ledgerflow/backend/internal/service"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -59,6 +60,8 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 		authService,
 		cfg.AppEnv == "production",
 	)
+	userService := service.NewUserService(authUserRepository)
+	userHandler := handler.NewUserHandler(userService)
 
 	engine.POST("/api/v1/organizations", organizationHandler.Create)
 
@@ -92,6 +95,11 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 	{
 		api.POST("/customers", customerHandler.Create)
 		api.GET("/customers", customerHandler.List)
+		api.GET(
+			"/users",
+			middleware.RequireRole(model.UserRoleFinanceAdmin),
+			userHandler.List,
+		)
 		api.POST("/invoices", invoiceHandler.Create)
 		api.GET("/invoices", invoiceHandler.List)
 		api.POST("/invoices/:invoice_id/issue", invoiceHandler.Issue)

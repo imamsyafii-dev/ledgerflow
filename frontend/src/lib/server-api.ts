@@ -1,12 +1,14 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import type { AuthenticatedUser } from "@/lib/auth-client";
 import type {
   Customer,
   Invoice,
-  JournalEntry,
-  Payment,
-  Reconciliation,
+	JournalEntry,
+	Payment,
+	Reconciliation,
+	User,
 } from "@/lib/api";
 
 type ApiResponse<T> = {
@@ -51,6 +53,20 @@ export async function getInvoices() {
 export async function getCustomers() {
   const response = await getFromAPI<ApiResponse<Customer[]>>(
     "/api/v1/customers",
+  );
+
+  return response.data;
+}
+
+export async function getUsers() {
+	const response = await getFromAPI<ApiResponse<User[]>>("/api/v1/users");
+
+	return response.data;
+}
+
+export async function getCurrentUser() {
+  const response = await getFromAPI<ApiResponse<AuthenticatedUser>>(
+    "/api/v1/auth/me",
   );
 
   return response.data;
