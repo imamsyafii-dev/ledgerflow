@@ -59,6 +59,18 @@ export type Payment = {
   created_at: string;
 };
 
+export type Reconciliation = {
+  id: string;
+  invoice_id: string;
+  invoice_number: string;
+  customer_name: string;
+  payment_id: string;
+  provider_payment_id: string;
+  amount: number;
+  status: "MATCHED" | "MANUAL_REVIEW" | "REVERSED";
+  reconciled_at: string;
+};
+
 type ApiResponse<T> = {
   data: T;
 };
@@ -261,6 +273,20 @@ export async function getPayments() {
 
   const response = await getFromAPI<ApiResponse<Payment[]>>(
     `/api/v1/payments?${query}`,
+  );
+
+  return response.data;
+}
+
+export async function getReconciliations() {
+  const { organizationID } = getConfiguration();
+
+  const query = new URLSearchParams({
+    organization_id: organizationID,
+  });
+
+  const response = await getFromAPI<ApiResponse<Reconciliation[]>>(
+    `/api/v1/reconciliations?${query}`,
   );
 
   return response.data;

@@ -7,6 +7,7 @@ const navigationItems = [
   { href: "/", label: "Dashboard" },
   { href: "/invoices", label: "Invoices" },
   { href: "/payments", label: "Payments" },
+  { href: "/reconciliations", label: "Reconciliations" },
   { href: "/customers", label: "Customers" },
   { href: "/ledger", label: "Ledger" },
 ];
