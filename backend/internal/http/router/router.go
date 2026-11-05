@@ -60,6 +60,8 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 		cfg.AppEnv == "production",
 	)
 
+	engine.POST("/api/v1/organizations", organizationHandler.Create)
+
 	customerRepository := repository.NewCustomerRepository(db)
 	customerService := service.NewCustomerService(customerRepository)
 	customerHandler := handler.NewCustomerHandler(customerService)
@@ -88,7 +90,6 @@ func New(db *pgxpool.Pool, cfg config.Config) *gin.Engine {
 	api := engine.Group("/api/v1")
 	api.Use(middleware.RequireAuth(cfg.JWTSecret))
 	{
-		api.POST("/organizations", organizationHandler.Create)
 		api.POST("/customers", customerHandler.Create)
 		api.GET("/customers", customerHandler.List)
 		api.POST("/invoices", invoiceHandler.Create)

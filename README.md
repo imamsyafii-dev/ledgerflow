@@ -140,34 +140,7 @@ done
 
 > Migration saat ini belum memiliki migration runner yang mencatat file yang sudah dieksekusi. Jangan ulangi perintah ini pada database yang sudah memiliki migration tersebut.
 
-### 4. Buat organization dan admin awal
-
-Saat ini endpoint organization membutuhkan authentication. Untuk bootstrap environment lokal, buat organization pertama langsung di PostgreSQL:
-
-```bash
-docker compose exec postgres psql -U ledgerflow -d ledgerflow
-```
-
-Di dalam prompt PostgreSQL, jalankan:
-
-```sql
-INSERT INTO organizations (name, slug)
-VALUES ('Ledgerflow Demo', 'ledgerflow-demo')
-RETURNING id;
-```
-
-Simpan `id` yang dikembalikan, lalu dari folder `backend` jalankan:
-
-```bash
-export ADMIN_ORGANIZATION_ID="organization-id-di-sini"
-export ADMIN_NAME="Finance Admin"
-export ADMIN_EMAIL="admin@ledgerflow.local"
-export ADMIN_PASSWORD="password-yang-kuat"
-
-go run ./cmd/seed-admin
-```
-
-### 5. Jalankan backend
+### 4. Jalankan backend
 
 ```bash
 cd backend
@@ -178,6 +151,30 @@ API berjalan pada `http://localhost:8080`.
 
 ```bash
 curl http://localhost:8080/health
+```
+
+### 5. Buat organization dan admin awal
+
+Buat organization melalui public bootstrap endpoint. Simpan nilai `data.id` dari response.
+
+```bash
+curl -X POST http://localhost:8080/api/v1/organizations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Ledgerflow Demo",
+    "slug": "ledgerflow-demo"
+  }'
+```
+
+Lalu, dari folder `backend`, jalankan:
+
+```bash
+export ADMIN_ORGANIZATION_ID="organization-id-di-sini"
+export ADMIN_NAME="Finance Admin"
+export ADMIN_EMAIL="admin@ledgerflow.local"
+export ADMIN_PASSWORD="password-yang-kuat"
+
+go run ./cmd/seed-admin
 ```
 
 ### 6. Jalankan frontend
@@ -199,6 +196,7 @@ Buka `http://localhost:3000`.
 | POST | `/api/v1/auth/login` | Login dan membuat session cookie |
 | POST | `/api/v1/auth/logout` | Menghapus session cookie |
 | GET | `/api/v1/auth/me` | Mengambil user yang sedang login |
+| POST | `/api/v1/organizations` | Bootstrap organization baru, tanpa JWT |
 | POST | `/api/v1/customers` | Membuat customer |
 | GET | `/api/v1/customers` | Menampilkan customer organisasi aktif |
 | POST | `/api/v1/invoices` | Membuat invoice |
@@ -212,6 +210,7 @@ Buka `http://localhost:3000`.
 ## Catatan keamanan saat ini
 
 - Endpoint API utama dilindungi JWT middleware.
+- `POST /api/v1/organizations` bersifat public untuk bootstrap lokal; sebelum production sebaiknya ditambahkan rate limiting atau dibuat sebagai alur registrasi yang membuat admin pertama sekaligus.
 - Token disimpan dalam HttpOnly cookie agar tidak dapat dibaca JavaScript di browser.
 - Data customer dan invoice dibatasi berdasarkan `organization_id` dari JWT.
 - Mock webhook masih merupakan endpoint publik untuk kebutuhan simulasi lokal.
