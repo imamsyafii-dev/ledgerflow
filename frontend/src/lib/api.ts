@@ -1,5 +1,6 @@
 export type Invoice = {
   id: string;
+  customer_name: string;
   number: string;
   amount: number;
   currency: string;

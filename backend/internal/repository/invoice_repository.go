@@ -91,20 +91,24 @@ func (r *InvoiceRepository) List(
 ) ([]model.Invoice, error) {
 	const query = `
 		SELECT
-			id::text,
-			organization_id::text,
-			customer_id::text,
-			number,
-			amount,
-			currency,
-			status,
-			due_date,
-			paid_at,
-			created_at,
-			updated_at
-		FROM invoices
-		WHERE organization_id = $1
-		ORDER BY created_at DESC
+			i.id::text,
+			i.organization_id::text,
+			i.customer_id::text,
+			c.name,
+			i.number,
+			i.amount,
+			i.currency,
+			i.status,
+			i.due_date,
+			i.paid_at,
+			i.created_at,
+			i.updated_at
+		FROM invoices i
+		JOIN customers c
+			ON c.id = i.customer_id
+			AND c.organization_id = i.organization_id
+		WHERE i.organization_id = $1
+		ORDER BY i.created_at DESC
 	`
 
 	rows, err := r.db.Query(ctx, query, organizationID)
@@ -122,6 +126,7 @@ func (r *InvoiceRepository) List(
 			&invoice.ID,
 			&invoice.OrganizationID,
 			&invoice.CustomerID,
+			&invoice.CustomerName,
 			&invoice.Number,
 			&invoice.Amount,
 			&invoice.Currency,

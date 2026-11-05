@@ -77,7 +77,7 @@ export default async function InvoicesPage() {
                 {invoices.map((invoice) => (
                   <tr key={invoice.id}>
                     <td>{invoice.number}</td>
-                    <td>{invoice.customer_id}</td>
+                    <td>{invoice.customer_name}</td>
                     <td>{formatDate(invoice.due_date)}</td>
                     <td>
                       <span className={`badge badge-${invoice.status.toLowerCase()}`}>

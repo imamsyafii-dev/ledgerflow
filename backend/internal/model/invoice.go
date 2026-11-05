@@ -12,6 +12,7 @@ type Invoice struct {
 	ID             string        `json:"id"`
 	OrganizationID string        `json:"organization_id"`
 	CustomerID     string        `json:"customer_id"`
+	CustomerName   string        `json:"customer_name"`
 	Number         string        `json:"number"`
 	Amount         int64         `json:"amount"`
 	Currency       string        `json:"currency"`
