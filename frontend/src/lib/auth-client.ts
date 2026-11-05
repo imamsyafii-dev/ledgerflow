@@ -45,9 +45,23 @@ export async function login(email: string, password: string) {
   return payload.data;
 }
 
+export async function getCurrentUser() {
+  const response = await fetch(`${getAPIBaseURL()}/api/v1/auth/me`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to get current user");
+  }
+
+  const payload = await response.json() as ApiResponse<AuthenticatedUser>;
+
+  return payload.data;
+}
+
 export async function logout() {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/logout`,
+    `${getAPIBaseURL()}/api/v1/auth/logout`,
     {
       method: "POST",
       credentials: "include",

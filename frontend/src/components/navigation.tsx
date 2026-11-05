@@ -1,8 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import { LogoutButton } from "@/components/logout-button";
+import { getCurrentUser, type AuthenticatedUser } from "@/lib/auth-client";
 
 const navigationItems = [
   { href: "/", label: "Dashboard" },
@@ -10,15 +13,26 @@ const navigationItems = [
   { href: "/payments", label: "Payments" },
   { href: "/reconciliations", label: "Reconciliations" },
   { href: "/customers", label: "Customers" },
-  { href: "/users", label: "Users" },
   { href: "/ledger", label: "Ledger" },
 ];
 
 export function Navigation() {
   const pathname = usePathname();
+  const [currentUser, setCurrentUser] = useState<AuthenticatedUser | null>(null);
+
+  useEffect(() => {
+    getCurrentUser()
+      .then(setCurrentUser)
+      .catch(() => setCurrentUser(null));
+  }, []);
+
   if (pathname === "/login") {
     return null;
   }
+
+  const visibleNavigationItems = currentUser?.role === "finance_admin"
+    ? [...navigationItems, { href: "/users", label: "Users" }]
+    : navigationItems;
 
   return (
     <header className="top-navigation">
@@ -28,7 +42,7 @@ export function Navigation() {
         </Link>
 
         <div className="navigation-links">
-          {navigationItems.map((item) => {
+          {visibleNavigationItems.map((item) => {
             const isActive = pathname === item.href;
 
             return (
