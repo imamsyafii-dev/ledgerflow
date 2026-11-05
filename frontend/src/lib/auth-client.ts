@@ -44,3 +44,17 @@ export async function login(email: string, password: string) {
 
   return payload.data;
 }
+
+export async function logout() {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/logout`,
+    {
+      method: "POST",
+      credentials: "include",
+    },
+  );
+
+  if (!response.ok && response.status !== 204) {
+    throw new Error("Logout gagal. Silakan coba lagi.");
+  }
+}
