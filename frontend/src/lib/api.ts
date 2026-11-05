@@ -7,6 +7,15 @@ export type Invoice = {
   due_date: string;
 };
 
+export type Customer = {
+  id: string;
+  organization_id: string;
+  name: string;
+  email: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type JournalLine = {
   account_code: string;
   account_name: string;
@@ -65,6 +74,20 @@ export async function getInvoices() {
 
   const response = await getFromAPI<ApiResponse<Invoice[]>>(
     `/api/v1/invoices?${query}`,
+  );
+
+  return response.data;
+}
+
+export async function getCustomers() {
+  const { organizationID } = getConfiguration();
+
+  const query = new URLSearchParams({
+    organization_id: organizationID,
+  });
+
+  const response = await getFromAPI<ApiResponse<Customer[]>>(
+    `/api/v1/customers?${query}`,
   );
 
   return response.data;
