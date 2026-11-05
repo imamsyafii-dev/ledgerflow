@@ -64,6 +64,14 @@ func New(db *pgxpool.Pool) *gin.Engine {
 	ledgerService := service.NewLedgerService(ledgerRepository)
 	ledgerHandler := handler.NewLedgerHandler(ledgerService)
 
+	reconciliationRepository := repository.NewReconciliationRepository(db)
+	reconciliationService := service.NewReconciliationService(
+		reconciliationRepository,
+	)
+	reconciliationHandler := handler.NewReconciliationHandler(
+		reconciliationService,
+	)
+
 	api := engine.Group("/api/v1")
 	{
 		api.POST("/organizations", organizationHandler.Create)
@@ -74,6 +82,7 @@ func New(db *pgxpool.Pool) *gin.Engine {
 		api.POST("/invoices/:invoice_id/issue", invoiceHandler.Issue)
 		api.GET("/ledger/journal-entries", ledgerHandler.ListJournalEntries)
 		api.GET("/payments", paymentHandler.List)
+		api.GET("/reconciliations", reconciliationHandler.List)
 	}
 
 	engine.POST("/webhooks/mock-gateway", paymentWebhookHandler.HandleSucceeded)
