@@ -28,10 +28,15 @@ func New(db *pgxpool.Pool) *gin.Engine {
 	customerService := service.NewCustomerService(customerRepository)
 	customerHandler := handler.NewCustomerHandler(customerService)
 
+	invoiceRepository := repository.NewInvoiceRepository(db)
+	invoiceService := service.NewInvoiceService(invoiceRepository)
+	invoiceHandler := handler.NewInvoiceHandler(invoiceService)
+
 	api := engine.Group("/api/v1")
 	{
 		api.POST("/organizations", organizationHandler.Create)
 		api.POST("/customers", customerHandler.Create)
+		api.POST("/invoices", invoiceHandler.Create)
 	}
 
 	return engine
