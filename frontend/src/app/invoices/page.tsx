@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getInvoices } from "@/lib/api";
+import { CreateInvoiceForm } from "@/components/create-invoice-form";
+import { getCustomers, getInvoices } from "@/lib/api";
 
 export const instant = false;
 
@@ -18,7 +19,10 @@ function formatDate(value: string) {
 }
 
 export default async function InvoicesPage() {
-  const invoices = await getInvoices();
+  const [invoices, customers] = await Promise.all([
+    getInvoices(),
+    getCustomers(),
+  ]);
 
   return (
     <main className="dashboard">
@@ -27,7 +31,7 @@ export default async function InvoicesPage() {
           <p className="eyebrow">Receivables</p>
           <h1>Invoices</h1>
           <p className="subtitle">
-            Daftar invoice untuk organization yang sedang aktif.
+            Buat dan monitor invoice untuk customer Anda.
           </p>
         </div>
 
@@ -36,7 +40,25 @@ export default async function InvoicesPage() {
         </Link>
       </section>
 
-      <article className="panel">
+      <section className="panel form-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">New invoice</p>
+            <h2>Create Invoice</h2>
+          </div>
+        </div>
+
+        <CreateInvoiceForm customers={customers} />
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">Receivables</p>
+            <h2>All Invoices</h2>
+          </div>
+        </div>
+
         {invoices.length === 0 ? (
           <p className="empty-state">Belum ada invoice.</p>
         ) : (
@@ -45,6 +67,7 @@ export default async function InvoicesPage() {
               <thead>
                 <tr>
                   <th>Invoice</th>
+                  <th>Customer</th>
                   <th>Due Date</th>
                   <th>Status</th>
                   <th className="amount">Amount</th>
@@ -54,6 +77,7 @@ export default async function InvoicesPage() {
                 {invoices.map((invoice) => (
                   <tr key={invoice.id}>
                     <td>{invoice.number}</td>
+                    <td>{invoice.customer_id}</td>
                     <td>{formatDate(invoice.due_date)}</td>
                     <td>
                       <span className={`badge badge-${invoice.status.toLowerCase()}`}>
@@ -69,7 +93,7 @@ export default async function InvoicesPage() {
             </table>
           </div>
         )}
-      </article>
+      </section>
     </main>
   );
 }

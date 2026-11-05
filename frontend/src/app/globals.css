@@ -342,3 +342,79 @@ th {
     font-size: 13px;
   }
 }
+
+.form-panel {
+  margin-bottom: 24px;
+}
+
+.invoice-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 0 24px 24px;
+}
+
+.form-field {
+  display: grid;
+  gap: 8px;
+}
+
+.form-field label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--foreground);
+  font: inherit;
+}
+
+.form-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 12px;
+}
+
+.primary-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 14px;
+  background: var(--primary);
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.form-hint,
+.form-error {
+  margin: 0;
+  font-size: 14px;
+}
+
+.form-hint {
+  color: var(--muted);
+}
+
+.form-error {
+  grid-column: 1 / -1;
+  color: #b42318;
+}
+
+@media (max-width: 640px) {
+  .invoice-form {
+    grid-template-columns: 1fr;
+  }
+}

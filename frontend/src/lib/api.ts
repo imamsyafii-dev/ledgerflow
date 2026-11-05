@@ -16,6 +16,14 @@ export type Customer = {
   updated_at: string;
 };
 
+export type CreateInvoiceInput = {
+  customerID: string;
+  number: string;
+  amount: number;
+  currency: string;
+  dueDate: string;
+};
+
 export type JournalLine = {
   account_code: string;
   account_name: string;
@@ -77,6 +85,35 @@ export async function getInvoices() {
   );
 
   return response.data;
+}
+
+export async function createInvoice(input: CreateInvoiceInput) {
+  const { apiBaseURL, organizationID } = getConfiguration();
+
+  const response = await fetch(`${apiBaseURL}/api/v1/invoices`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      organization_id: organizationID,
+      customer_id: input.customerID,
+      number: input.number,
+      amount: input.amount,
+      currency: input.currency,
+      due_date: input.dueDate,
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+
+    throw new Error(payload?.error ?? "Failed to create invoice");
+  }
+
+  const payload = await response.json() as ApiResponse<Invoice>;
+
+  return payload.data;
 }
 
 export async function getCustomers() {
